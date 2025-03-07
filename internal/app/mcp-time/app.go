@@ -6,44 +6,43 @@ package mcp_time
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"time"
 
-	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
+	"github.com/google/wire"
+
+	"github.com/fsyyft-ai/mcp-time/internal/config"
+)
+
+var (
+	ProviderSet = wire.NewSet(
+		NewLogger,
+	)
 )
 
 func Run() {
-	// Create MCP server
-	s := server.NewMCPServer(
-		"MCP Time",
-		"0.0.1",
-	)
-	// Add tool
-	tool := mcp.NewTool("current time",
-		mcp.WithDescription("Get current time with timezone, Asia/Shanghai is default"),
-		mcp.WithString("timezone",
-			mcp.Required(),
-			mcp.Description("current time timezone"),
-		),
-	)
-	// Add tool handler
-	s.AddTool(tool, currentTimeHandler)
-	// Start the stdio server
-	if err := server.ServeStdio(s); err != nil {
-		fmt.Printf("Server error: %v\n", err)
-	}
-}
+	// 定义配置文件路径变量，默认为"configs/config.yaml"。
+	var configPath string
 
-func currentTimeHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	timezone, ok := request.Params.Arguments["timezone"].(string)
-	if !ok {
-		return mcp.NewToolResultError("timezone must be a string"), nil
+	// 注册命令行参数，用于指定配置文件路径。
+	flag.StringVar(&configPath, "config", "configs/config.yaml", "配置文件路径")
+	flag.Parse()
+
+	// 从指定路径加载配置文件。
+	cfg, err := config.LoadConfig(configPath)
+	if nil != err {
+		fmt.Printf("加载配置文件失败：%v", err)
+		return
 	}
 
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("parse timezone with error: %v", err)), nil
+	// 通过 Wire 框架生成的 wireServer 函数初始化服务。
+	// 该函数会自动注入所有依赖项并返回配置好的 Web 服务器实例。
+	if webServer, cleanup, err := wireServer(cfg); nil != err {
+		fmt.Printf("初始化失败：%v", err)
+		// 调用清理函数释放已分配的资源。
+		cleanup()
+	} else {
+		// 启动 Web 服务器。
+		_ = webServer.Run(context.TODO())
 	}
-	return mcp.NewToolResultText(fmt.Sprintf(`current time is %s`, time.Now().In(loc))), nil
 }

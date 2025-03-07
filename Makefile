@@ -20,6 +20,11 @@ config:
  	       --go_out=paths=source_relative:. \
 	       $(INTERNAL_CONFIG_PROTO_FILES)
 
+.PHONY: generate
+generate:
+	go mod tidy
+	go generate ./...
+
 .PHONY: lint
 lint:
 	golangci-lint run
