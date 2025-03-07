@@ -1,0 +1,25 @@
+// Copyright 2025 fsyyft-ai
+//
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+syntax = "proto3";
+
+package internal.config;
+
+option go_package = "github.com/fsyyft-ai/mcp-time/internal/config;config";
+
+// Config 定义应用程序的总体配置结构。
+message Config {
+    // 日志配置。
+    Log log = 1;
+  }
+
+// Log 定义日志系统的配置。
+message Log {
+    // 日志类型，如 logrus。
+    string type = 1;
+    // 日志输出路径。
+    string output = 2;
+    // 日志级别，如 debug、info、warn、error。
+    string level = 3;
+  }
