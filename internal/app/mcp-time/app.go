@@ -2,12 +2,12 @@
 //
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-package main
+package mcp_time
 
 import (
-	mcp_time "github.com/fsyyft-ai/mcp-time/internal/app/mcp-time"
+	"fmt"
 )
 
-func main() {
-	mcp_time.Run()
+func Run() {
+	fmt.Println("Hello, World!")
 }
